@@ -1,88 +1,107 @@
-run commands below to set up env
-- `brew install nasm qemu gcc`
-- `brew tap nativeos/i386-elf-toolchain`
-- `brew install i386-elf-binutils i386-elf-gcc`
+# x86 Operating System
 
-cd to /23-fixes, then you can compile and run `make run`
+This is a simple 32-bit operating system designed for a CSYE6230 final project. The OS boots from a custom bootloader, enters Protected Mode, and provides a basic command-line shell for user interaction. It aims to demonstrate core operating system concepts, including interrupt handling, low-level drivers, and an in-memory simulated file system.
 
-make sure run `make clean && make run` if you change any code.
+## Building and Running
 
---------------------
-Purpose of the Operating System
-This operating system is designed to demonstrate fundamental OS concepts and basic system functionality. The primary purpose is to:
+This project was developed and tested on macOS using the Homebrew package manager.
 
-Command Interface: Implement a simple shell interface for user interaction
-Resource Management: Demonstrate basic memory management and system resource tracking
-File Operations: Simulate basic file system operations like rename and move
+### 1. Environment Setup
 
-The OS boots from a custom bootloader, initializes hardware components, and provides a command-line interface for user interaction.
-Implemented Functions
+Run the following commands in your terminal to install the required dependencies:
 
-1. LIST Command
+```bash
+# Install the QEMU emulator and NASM assembler
+brew install nasm qemu
 
-Purpose: Displays all available commands in the system
-Implementation: Iterates through a command table and prints each command with its description
-Code Location: kernel/kernel.c - cmd_list() function
+# Install the x86 cross-compiler toolchain (gcc, binutils, gdb)
+# Note: We use x86_64-elf-* as this is the current standard package in Homebrew
+brew install x86_64-elf-binutils x86_64-elf-gcc x86_64-elf-gdb
+```
 
-2. CLEAR Command
+**Important:** Ensure that the `CC`, `LD`, and `GDB` variables in the root `Makefile` are correctly set to `x86_64-elf-gcc`, `x86_64-elf-ld`, and `x86_64-elf-gdb`, respectively.
 
-Purpose: Clears the terminal screen
-Implementation: Writes blank spaces to the entire video memory buffer and resets cursor position
-Code Location: drivers/screen.c - clear_screen() function
+### 2. Compilation and Execution
 
-3. ECHO Command
+After navigating to the project's root directory, execute the following command:
 
-Purpose: Echoes user input back to the screen
-Implementation: Parses input string after "ECHO" keyword and prints it
-Use Case: Testing input/output functionality
-Code Location: kernel/kernel.c - cmd_echo() function
+```bash
+# To compile and run the OS
+make run
+```
 
-4. RENAME Command
+If you modify any source code, it's recommended to clean the build artifacts first:
 
-Purpose: Demonstrates file renaming capability
-Implementation: Maintains a simple file table and updates file names
-Code Location: kernel/kernel.c - cmd_rename() function
+```bash
+make clean && make run
+```
 
-5. MOVE Command
+---
 
-Purpose: Simulates moving files between directories
-Implementation: Parses source and destination paths and simulates file movement
-Code Location: kernel/kernel.c - cmd_move() function
+## Features & Commands
 
-Technical Implementation Details
+The operating system provides a basic command-line shell. The command parser is case-insensitive for commands (e.g., `list` works the same as `LIST`), but case-sensitive for arguments (e.g., filenames).
 
-Bootloader: Custom x86 bootloader that loads the kernel into memory
-Kernel: Monolithic kernel design with integrated drivers
-Memory Management: Basic flat memory model with simple allocation
-Interrupt Handling: Implements IDT for keyboard and timer interrupts
-Display Driver: Direct VGA text mode manipulation at 0xB8000
+#### `LIST`
+* **Purpose**: Lists all files and their sizes within the in-memory simulated file system.
+* **Implementation**: Iterates through a global array of file entries and prints the name and size of each existing file.
+* **Code Location**: `kernel/kernel.c` - `cmd_list()`
 
-Screenshots: https://zaq7nm9t6b.feishu.cn/docx/L2rIdweXwoehnvxBxlhcZ5kKn9d?from=from_copylink
+#### `RENAME <old_name> <new_name>`
+* **Purpose**: Renames a file.
+* **Implementation**: Finds `<old_name>` in the in-memory file table and updates its name to `<new_name>`. The search is case-insensitive to accommodate the keyboard driver's behavior.
+* **Code Location**: `kernel/kernel.c` - `cmd_rename()`
 
-Code Statistics
+#### `MOVE <source> <destination_path>`
+* **Purpose**: Simulates moving a file to a new "directory".
+* **Implementation**: Finds the `<source>` file and renames it to `<destination_path>/<source>` to simulate a path change within the in-memory file system.
+* **Code Location**: `kernel/kernel.c` - `cmd_move()`
 
-Total Lines of Code: ~2,500 lines
-Original Tutorial Code: ~2,000 lines
-New Functions Added: ~500 lines
-Languages Used: C (85%), Assembly (15%)
-Files Modified: 8 files
-New Functions Created: 5 major functions
+#### `ECHO <message>`
+* **Purpose**: Echoes the user-provided message back to the screen.
+* **Implementation**: Parses the input string and prints all text following the `ECHO` keyword.
+* **Code Location**: `kernel/kernel.c` - `cmd_echo()`
 
-Challenges and Learning Outcomes
-The main challenges included understanding low-level hardware interaction, implementing proper interrupt handling, and managing memory without standard library support. This project provided valuable insights into:
+#### `CLEAR`
+* **Purpose**: Clears the terminal screen.
+* **Implementation**: Writes space characters to the entire VGA video memory buffer (starting at `0xB8000`) and resets the cursor position.
+* **Code Location**: `drivers/screen.c` - `clear_screen()`
 
-How operating systems boot and initialize
-Direct hardware manipulation
-The importance of system calls and kernel/user space separation
-Basic command parsing and execution
+#### `HELP` / `END`
+* **Purpose**: `HELP` provides simple help information. `END` halts the CPU, effectively stopping the operating system.
 
-Future Improvements
-Potential enhancements could include:
+---
 
-Implementing a real file system (FAT12 or custom)
-Adding process management and multitasking
-Implementing virtual memory with paging
-Adding network stack support
+##  Technical Implementation Details
 
-Conclusion
-This project successfully demonstrates core OS functionality through practical implementation. The system boots reliably, handles user input, and executes multiple commands, meeting all project requirements while providing a foundation for further OS development.
+* **Bootloader**: A custom bootloader written in x86 Assembly, responsible for switching to 32-bit Protected Mode and loading the kernel into memory.
+* **Kernel**: A simple monolithic kernel design where all drivers and functionalities are integrated.
+* **File System**: To simplify the implementation, an **In-Memory Simulated File System** is used. All file states are stored in RAM and are lost upon reboot.
+* **Interrupt Handling**: An Interrupt Descriptor Table (IDT) is implemented to handle hardware interrupts, such as keyboard input and the PIT (Programmable Interval Timer).
+* **Display Driver**: The screen is controlled by directly manipulating the VGA text mode memory buffer at the physical address `0xB8000`.
+
+### Code Statistics
+* **Total Lines of Code**: 1065
+
+---
+
+## Future Improvements
+
+Potential enhancements for this project could include:
+* Implementing a real, persistent file system (e.g., FAT12).
+* Adding process management and basic multitasking.
+* Implementing virtual memory through paging.
+* Developing a basic networking stack.
+
+## Screenshots
+#### `LIST`
+<img width="1280" height="697" alt="image" src="https://github.com/user-attachments/assets/ecae5d58-ee7a-4cde-b3e2-dab6c176d017" />
+
+#### `ECHO <message>`
+<img width="1280" height="699" alt="image" src="https://github.com/user-attachments/assets/fefe34d4-f9b7-4589-9cb2-b5fee3308812" />
+
+#### `RENAME <old_name> <new_name>`
+<img width="1280" height="698" alt="image" src="https://github.com/user-attachments/assets/8c1a9b39-4789-4c6c-8aaa-a4e0f5db1053" />
+
+#### `MOVE <source> <destination_path>`
+<img width="1280" height="699" alt="image" src="https://github.com/user-attachments/assets/94d833d7-f0da-47b1-845a-a74a7d452db5" />
