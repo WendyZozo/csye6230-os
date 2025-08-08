@@ -105,3 +105,12 @@ Potential enhancements for this project could include:
 
 #### `MOVE <source> <destination_path>`
 <img width="1280" height="699" alt="image" src="https://github.com/user-attachments/assets/94d833d7-f0da-47b1-845a-a74a7d452db5" />
+
+
+## References
+* Banafa, A. (2025). CSYE 6230 Operating Systems. Northeastern University Canvas. https://canvas.northeastern.edu
+* Beekmans, G., & The LFS Development Team. (2024). Linux from scratch (Version 12.1). Linux From Scratch. https://www.linuxfromscratch.org/lfs/view/stable/
+* Fenollosa, C. (2020). Os-tutorial. GitHub. https://github.com/cfenollosa/os-tutorial
+* Google. (2024). Gemini [Large language model]. https://gemini.google.com
+* Helin, E., & Renberg, A. (2020). The little book about OS development. GitHub Pages. https://littleosbook.github.io/
+* Saunders, M. (2009, July). How to write your own operating system. MikeOS. https://mikeos.sourceforge.net/write-your-own-os.html
